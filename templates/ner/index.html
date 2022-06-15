@@ -120,6 +120,11 @@
 </head>
 <body>
   <div class="container">
+    <ul>
+      <li><a href="/">Index</a></li>
+      <li><a href="/tag">Tagged</a></li>
+    </ul>
+    <h1>{{title}}</h1>
     <form action="{{action}}" method="post">
       {% csrf_token %}
       <h2>Input</h2>
@@ -129,13 +134,13 @@
     {% if output %}
       <h2>Results</h2>
       <p class="output">{{output | safe}}</p>
-    {% endif %}
-    {% if entities %}
-      <h2>Entities</h2>
-      <table class="entities">
-        {{entities | safe}}
-      </table>
-    {% endif %}
+        {% if entities %}
+        <h2>Entities</h2>
+        <table class="entities">
+          {{entities | safe}}
+        </table>
+        {% endif %}
+      {% endif %}
   </div>
 </body>
 </html>
