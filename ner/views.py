@@ -1,25 +1,20 @@
+from lib2to3.pgen2.token import AT
 from django.http import HttpResponse
 from django.shortcuts import render, redirect
 from django.utils.html import escape, escapejs, strip_tags
 from pythainlp.tag import NER
 import re
 
+# สนใจ: date, time, location, person, organization
 ALL_ENTITY = [
   "DATE",
   "TIME",
-  "EMAIL",
-  "LEN",
   "LOCATION",
-  "ORGANIZATION",
   "PERSON",
-  "PHONE",
-  "URL",
-  "ZIP",
-  "MONEY",
-  "LAW",
+  "ORGANIZATION",
 ]
 
-def tag(request):
+def index(request):
   pner = NER(engine='thainer')
   text = request.POST.get('text', '')
   text = strip_tags(text)
@@ -28,26 +23,36 @@ def tag(request):
   ner = pner.tag(text, tag=True)
   output = ''
   highlight_ner = ner
+  entry = []
   for entity in ALL_ENTITY:
     p = re.compile(f'<{entity}>(.+?)</{entity}>')
     try:
       result = p.findall(ner)
     except AttributeError:
-      result = ''
-    output += '<tr class="' + entity.lower() +'"><th>' + entity + '</th><td><span class=tag-'+ entity.lower() +'>' + f'</span>, <span class=tag-{entity.lower()}>'.join(result) + '</span></td></tr>'
-    # highlight_ner = p.sub(f'<{entity}>(.+?)</{entity}>', f'<span class="{entity.lower()}">\1</span>', highlight_ner)
+      result = []
+    for o in result:
+      entry.append({
+        'entity': entity.lower(),
+        'value': o
+      })
     highlight_ner = p.sub(string=highlight_ner, repl=fr'<span class="tag-{entity.lower()}" title="{entity}">\1</span>')
+  for e in entry:
+    output += f"""
+      <tr class="entities entity-{e['entity']}">
+        <th class="row-{e['entity']}">{e['entity']}</th>
+        <td>{e['value']}</td>
+      </tr>
+    """
   context = {
     'title': 'Tagged',
     'message': 'Welcome to the NER app!',
     'action': '/tag/',
     'output': highlight_ner,
-    'entities': output
+    'entities': output,
   }
   return render(request, 'ner/index.html', context)
 
-
-def index(request):
+def tag(request):
   pner = NER(engine='thainer')
   text = request.POST.get('text', '')
   text = strip_tags(text)
